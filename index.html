@@ -2,8 +2,8 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داور هوشمند فوتبال</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>داور هوشمند فوتبال | مینی‌اپ رسمی</title>
     <script src="https://tapi.bale.ai/miniapp.js?3"></script>
     <style>
         * {
@@ -11,73 +11,180 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             min-height: 100vh;
-            color: white;
+            color: #fff;
             padding: 20px;
         }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
         }
+
+        /* Header */
         .header {
             text-align: center;
             padding: 20px;
             background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
+
         .header h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 28px;
+            margin-bottom: 8px;
+            background: linear-gradient(45deg, #feca57, #ff6b6b);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
         }
+
+        .header p {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        /* User Info */
+        .user-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 12px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .user-name {
+            font-weight: bold;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .status-badge {
+            background: #4cd964;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        /* Menu Grid */
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             margin-bottom: 30px;
         }
-        .menu-item {
+
+        .menu-card {
             background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 20px;
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.15);
         }
-        .menu-item:hover {
+
+        .menu-card:hover {
+            transform: translateY(-5px);
             background: rgba(255,255,255,0.2);
-            transform: translateY(-3px);
+            border-color: #feca57;
         }
-        .menu-icon {
+
+        .card-icon {
             font-size: 40px;
             margin-bottom: 10px;
         }
-        .menu-title {
+
+        .card-title {
             font-size: 14px;
             font-weight: bold;
+            margin-bottom: 5px;
         }
+
+        .card-desc {
+            font-size: 10px;
+            color: #aaa;
+        }
+
+        /* Info Section */
         .info-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
+
         .info-card h3 {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: #feca57;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+
+        .result-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-right: 3px solid #feca57;
+        }
+
+        .result-teams {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .result-score {
+            color: #feca57;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #aaa;
+        }
+
+        /* Footer */
         .footer {
             text-align: center;
-            font-size: 12px;
-            color: #888;
-            margin-top: 30px;
+            font-size: 11px;
+            color: #666;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
-        @media (max-width: 500px) {
+
+        /* Responsive */
+        @media (min-width: 600px) {
             .menu-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 15px;
+            }
+            .card-icon {
+                font-size: 32px;
+            }
+            .card-desc {
+                display: none;
             }
         }
     </style>
@@ -89,44 +196,70 @@
             <p>تاکتیک بده، مسابقه بده، با هوش مصنوعی قضاوت شو!</p>
         </div>
 
+        <div class="user-card" id="userCard">
+            <span>👤 خوش آمدی</span>
+            <span class="user-name" id="userName">کاربر مهمان</span>
+            <span class="status-badge">✅ آنلاین</span>
+        </div>
+
         <div class="menu-grid">
-            <div class="menu-item" onclick="sendCommand('🎯 تاکتیک')">
-                <div class="menu-icon">📝</div>
-                <div class="menu-title">ارسال تاکتیک</div>
+            <div class="menu-card" onclick="sendCommand('🎯 تاکتیک')">
+                <div class="card-icon">📝</div>
+                <div class="card-title">ارسال تاکتیک</div>
+                <div class="card-desc">سیستم بازی و ترکیب</div>
             </div>
-            <div class="menu-item" onclick="sendCommand('🤝 درخواست بازی')">
-                <div class="menu-icon">🎮</div>
-                <div class="menu-title">درخواست بازی</div>
+            <div class="menu-card" onclick="sendCommand('🤝 درخواست بازی')">
+                <div class="card-icon">🎮</div>
+                <div class="card-title">درخواست بازی</div>
+                <div class="card-desc">مسابقه دوستانه</div>
             </div>
-            <div class="menu-item" onclick="sendCommand('📋 ترکیب من')">
-                <div class="menu-icon">👕</div>
-                <div class="menu-title">ترکیب من</div>
+            <div class="menu-card" onclick="sendCommand('📋 ترکیب من')">
+                <div class="card-icon">👕</div>
+                <div class="card-title">ترکیب من</div>
+                <div class="card-desc">بازیکنان تیمت</div>
             </div>
-            <div class="menu-item" onclick="sendCommand('🛒 فروشگاه')">
-                <div class="menu-icon">🛍️</div>
-                <div class="menu-title">فروشگاه</div>
+            <div class="menu-card" onclick="sendCommand('🛒 فروشگاه')">
+                <div class="card-icon">🛍️</div>
+                <div class="card-title">فروشگاه</div>
+                <div class="card-desc">محصولات ویژه</div>
             </div>
-            <div class="menu-item" onclick="sendCommand('📊 لیگ و نتایج')">
-                <div class="menu-icon">🏆</div>
-                <div class="menu-title">جدول لیگ</div>
+            <div class="menu-card" onclick="sendCommand('📊 لیگ و نتایج')">
+                <div class="card-icon">🏆</div>
+                <div class="card-title">جدول لیگ</div>
+                <div class="card-desc">رده‌بندی</div>
             </div>
-            <div class="menu-item" onclick="sendCommand('💬 نظرات')">
-                <div class="menu-icon">💬</div>
-                <div class="menu-title">نظرات</div>
+            <div class="menu-card" onclick="sendCommand('💬 نظرات')">
+                <div class="card-icon">💬</div>
+                <div class="card-title">نظرات</div>
+                <div class="card-desc">پیشنهادات</div>
             </div>
-            <div class="menu-item" onclick="sendCommand('/admin')">
-                <div class="menu-icon">⚙️</div>
-                <div class="menu-title">پنل مدیریت</div>
+            <div class="menu-card" onclick="sendCommand('🎙️ کنفرانس خبری')">
+                <div class="card-icon">🎙️</div>
+                <div class="card-title">کنفرانس خبری</div>
+                <div class="card-desc">تصویر و متن</div>
+            </div>
+            <div class="menu-card" onclick="sendCommand('/admin')">
+                <div class="card-icon">⚙️</div>
+                <div class="card-title">پنل مدیریت</div>
+                <div class="card-desc">تنظیمات</div>
             </div>
         </div>
 
         <div class="info-card">
             <h3>🏆 آخرین نتایج</h3>
-            <div id="results">در حال بارگیری...</div>
+            <div id="results-list" class="loading">در حال بارگیری...</div>
+        </div>
+
+        <div class="info-card">
+            <h3>⭐ پیشنهاد ویژه</h3>
+            <div style="text-align: center; padding: 10px;">
+                <p>🎯 تاکتیک بفرست و با هوش مصنوعی داوری شو!</p>
+                <p style="font-size: 12px; color: #aaa;">ارسال تاکتیک = شانس برد بیشتر</p>
+            </div>
         </div>
 
         <div class="footer">
-            <p>Mohammad</p>
+            <p>⚽ با هوش مصنوعی DeepSeek | داور هوشمند فوتبال</p>
         </div>
     </div>
 
@@ -137,9 +270,16 @@
         if (WebApp) {
             WebApp.ready();
             WebApp.expand();
+            
             const user = WebApp.initDataUnsafe?.user;
             if (user) {
-                console.log('کاربر:', user.first_name);
+                const userName = user.first_name || "کاربر";
+                document.getElementById('userName').innerHTML = `${userName} ⚽`;
+                document.getElementById('userCard').innerHTML = `
+                    <span>👤 خوش آمدی</span>
+                    <span class="user-name">${userName}</span>
+                    <span class="status-badge">✅ آنلاین</span>
+                `;
             }
         }
 
@@ -153,24 +293,33 @@
             }
         }
 
-        // دریافت اطلاعات از سرور ربات (اختیاری)
-        async function loadData() {
+        // دریافت نتایج از سرور ربات (اختیاری - برای آینده)
+        async function loadResults() {
             try {
-                const response = await fetch('/api/get_data');
-                const data = await response.json();
-                if (data.results && data.results.length > 0) {
-                    document.getElementById('results').innerHTML = data.results.map(r => 
-                        `<div>⚽ ${r.team1} ${r.result} ${r.team2}</div>`
-                    ).join('');
-                } else {
-                    document.getElementById('results').innerHTML = '<div>هنوز مسابقه‌ای برگزار نشده</div>';
-                }
+                const resultsDiv = document.getElementById('results-list');
+                
+                // این بخش بعداً به API واقعی ربات متصل میشه
+                // فعلاً داده‌های نمونه نمایش داده میشه
+                const sampleResults = [
+                    { team1: "برزیل", team2: "آلمان", score: "3 - 1", date: "۱۴۰۳/۰۳/۱۵" },
+                    { team1: "فرانسه", team2: "انگلستان", score: "2 - 2", date: "۱۴۰۳/۰۳/۱۴" },
+                    { team1: "آرژانتین", team2: "پرتغال", score: "1 - 0", date: "۱۴۰۳/۰۳/۱۳" }
+                ];
+                
+                resultsDiv.innerHTML = sampleResults.map(r => `
+                    <div class="result-item">
+                        <div class="result-teams">⚽ ${r.team1} 🆚 ${r.team2}</div>
+                        <div class="result-score">${r.score}</div>
+                        <div style="font-size: 10px; color: #888;">📅 ${r.date}</div>
+                    </div>
+                `).join('');
             } catch(e) {
-                document.getElementById('results').innerHTML = '<div>در حال آماده‌سازی...</div>';
+                document.getElementById('results-list').innerHTML = '<div class="loading">📭 هنوز مسابقه‌ای برگزار نشده</div>';
             }
         }
         
-        loadData();
+        // بارگیری اولیه
+        loadResults();
     </script>
 </body>
 </html>

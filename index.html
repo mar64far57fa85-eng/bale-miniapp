@@ -6,25 +6,98 @@
     <title>داور هوشمند فوتبال</title>
     <script src="https://tapi.bale.ai/miniapp.js?3"></script>
     <style>
-        body{background:linear-gradient(135deg,#0a0a2a,#1a1a3e);color:white;font-family:Tahoma;padding:20px;text-align:center}
-        button{background:#feca57;color:#1a1a2e;border:none;padding:15px;margin:10px;border-radius:15px;font-size:16px;cursor:pointer;width:45%}
-        h1{font-size:22px;margin-bottom:20px}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family:Tahoma,sans-serif;
+            background:linear-gradient(135deg,#0a0a2a,#1a1a3e);
+            color:white;
+            min-height:100vh;
+            padding:20px;
+            text-align:center;
+        }
+        h1{
+            font-size:24px;
+            margin-bottom:10px;
+            background:linear-gradient(45deg,#feca57,#ff6b6b);
+            background-clip:text;
+            -webkit-background-clip:text;
+            color:transparent;
+        }
+        .sub{
+            font-size:13px;
+            color:#aaa;
+            margin-bottom:30px;
+        }
+        .menu{
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:center;
+            gap:12px;
+            margin:30px 0;
+        }
+        button{
+            background:rgba(255,255,255,0.1);
+            border:1px solid rgba(255,255,255,0.2);
+            border-radius:20px;
+            padding:18px 20px;
+            width:calc(50% - 12px);
+            max-width:160px;
+            color:white;
+            font-size:16px;
+            cursor:pointer;
+            transition:0.2s;
+        }
+        button:active{
+            transform:scale(0.95);
+            background:rgba(255,255,255,0.2);
+        }
+        .icon{font-size:32px;display:block;margin-bottom:8px;}
+        .footer{
+            font-size:11px;
+            color:#666;
+            margin-top:40px;
+            padding-top:20px;
+            border-top:1px solid rgba(255,255,255,0.1);
+        }
     </style>
 </head>
 <body>
     <h1>⚽ داور هوشمند فوتبال</h1>
-    <button onclick="sendCmd('🎯 تاکتیک')">📝 تاکتیک</button>
-    <button onclick="sendCmd('📋 ترکیب من')">👕 ترکیب من</button>
-    <button onclick="sendCmd('🤝 درخواست بازی')">🎮 درخواست بازی</button>
-    <button onclick="sendCmd('🛒 فروشگاه')">🛍️ فروشگاه</button>
-    <button onclick="sendCmd('📊 لیگ و نتایج')">🏆 جدول لیگ</button>
-    <button onclick="sendCmd('💬 نظرات')">💬 نظرات</button>
-    <button onclick="sendCmd('/admin')">⚙️ مدیریت</button>
-    <p style="margin-top:30px;font-size:12px">💡 روی دکمه کلیک کن → مینی‌اپ بسته میشه → ربات جواب میده</p>
+    <div class="sub">تاکتیک بده، مسابقه بده، با هوش مصنوعی قضاوت شو!</div>
+
+    <div class="menu">
+        <button onclick="sendCmd('🎯 تاکتیک')"><span class="icon">📝</span>تاکتیک</button>
+        <button onclick="sendCmd('📋 ترکیب من')"><span class="icon">👕</span>ترکیب من</button>
+        <button onclick="sendCmd('🤝 درخواست بازی')"><span class="icon">🎮</span>درخواست بازی</button>
+        <button onclick="sendCmd('🛒 فروشگاه')"><span class="icon">🛍️</span>فروشگاه</button>
+        <button onclick="sendCmd('📊 لیگ و نتایج')"><span class="icon">🏆</span>جدول لیگ</button>
+        <button onclick="sendCmd('💬 نظرات')"><span class="icon">💬</span>نظرات</button>
+        <button onclick="sendCmd('🎙️ کنفرانس خبری')"><span class="icon">🎙️</span>کنفرانس</button>
+        <button onclick="sendCmd('/admin')"><span class="icon">⚙️</span>مدیریت</button>
+    </div>
+
+    <div class="footer">
+        💡 روی هر دکمه کلیک کن → مینی‌اپ بسته میشه → ربات جواب میده
+    </div>
+
     <script>
         let WebApp = window.Telegram?.WebApp || window.Bale?.WebApp;
-        if(WebApp){WebApp.ready();WebApp.expand();}
-        function sendCmd(cmd){if(WebApp){WebApp.sendData(cmd);WebApp.close();}else{alert('از داخل ربات بله باز کنید!');}}
+        if(WebApp){
+            WebApp.ready();
+            WebApp.expand();
+            let user = WebApp.initDataUnsafe?.user;
+            if(user){
+                document.querySelector('.sub').innerHTML = `👋 خوش آمدی ${user.first_name || ''}! تاکتیک بده، مسابقه بده، قضاوت شو!`;
+            }
+        }
+        function sendCmd(cmd){
+            if(WebApp){
+                WebApp.sendData(cmd);
+                WebApp.close();
+            }else{
+                alert('لطفاً این صفحه را از داخل ربات بله باز کنید!');
+            }
+        }
     </script>
 </body>
 </html>

@@ -1,325 +1,78 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>داور هوشمند فوتبال | مینی‌اپ رسمی</title>
-    <script src="https://tapi.bale.ai/miniapp.js?3"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+@flask_app.route('/api/shop', methods=['GET'])
+def get_shop_api():
+    conn = sqlite3.connect('bot.db')
+    items = conn.execute("SELECT id, title, description, price FROM shop_items").fetchall()
+    conn.close()
+    return jsonify([{'id': i[0], 'title': i[1], 'description': i[2], 'price': i[3]} for i in items])
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            min-height: 100vh;
-            color: #fff;
-            padding: 20px;
-        }
+@flask_app.route('/api/send_tactic', methods=['POST'])
+def send_tactic_api():
+    data = request.json
+    user_id = data.get('user_id')
+    formation = data.get('formation')
+    players = data.get('players')
+    tactic = data.get('tactic')
+    
+    conn = sqlite3.connect('bot.db')
+    team = conn.execute("SELECT id FROM teams WHERE owner_id = ?", (str(user_id),)).fetchone()
+    if not team:
+        return jsonify({'success': False, 'error': 'تیمی ندارید'})
+    
+    conn.execute("INSERT INTO pending_tactics (team_id, formation, players_json, tactic_text, submitted_at, status) VALUES (?, ?, ?, ?, ?, 'approved')",
+                 (team[0], formation, players, tactic, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+@flask_app.route('/api/friendly_request', methods=['POST'])
+def friendly_request_api():
+    data = request.json
+    user_id = data.get('user_id')
+    opponent_id = data.get('opponent_id')
+    
+    conn = sqlite3.connect('bot.db')
+    team = conn.execute("SELECT id, owner_id FROM teams WHERE owner_id = ?", (str(user_id),)).fetchone()
+    opponent = conn.execute("SELECT owner_id FROM teams WHERE id = ?", (opponent_id,)).fetchone()
+    
+    if not team or not opponent:
+        return jsonify({'success': False, 'error': 'تیم پیدا نشد'})
+    
+    conn.execute("INSERT INTO friendlies (from_team_id, to_team_id, status, created_at) VALUES (?, ?, 'pending', ?)",
+                 (team[0], opponent_id, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    
+    send_message(opponent[0], f"🎮 درخواست بازی دوستانه از تیم شما!")
+    return jsonify({'success': True})
 
-        /* Header */
-        .header {
-            text-align: center;
-            padding: 20px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+@flask_app.route('/api/feedback', methods=['POST'])
+def feedback_api():
+    data = request.json
+    user_id = data.get('user_id')
+    message = data.get('message')
+    
+    conn = sqlite3.connect('bot.db')
+    conn.execute("INSERT INTO feedbacks (user_id, message, created_at) VALUES (?, ?, ?)",
+                 (str(user_id), message, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    
+    send_to_admin(f"📩 نظر جدید از {user_id}:\n{message}")
+    return jsonify({'success': True})
 
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-            background: linear-gradient(45deg, #feca57, #ff6b6b);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-
-        .header p {
-            color: #ccc;
-            font-size: 14px;
-        }
-
-        /* User Info */
-        .user-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 12px 20px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .user-name {
-            font-weight: bold;
-            background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
-        }
-
-        .status-badge {
-            background: #4cd964;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-
-        /* Menu Grid */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .menu-card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.15);
-        }
-
-        .menu-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255,255,255,0.2);
-            border-color: #feca57;
-        }
-
-        .card-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-
-        .card-title {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .card-desc {
-            font-size: 10px;
-            color: #aaa;
-        }
-
-        /* Info Section */
-        .info-card {
-            background: rgba(255,255,255,0.08);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .info-card h3 {
-            margin-bottom: 15px;
-            color: #feca57;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .result-item {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-right: 3px solid #feca57;
-        }
-
-        .result-teams {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .result-score {
-            color: #feca57;
-            font-weight: bold;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #aaa;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            font-size: 11px;
-            color: #666;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* Responsive */
-        @media (min-width: 600px) {
-            .menu-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        @media (max-width: 500px) {
-            body {
-                padding: 15px;
-            }
-            .card-icon {
-                font-size: 32px;
-            }
-            .card-desc {
-                display: none;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>⚽ داور هوشمند فوتبال</h1>
-            <p>تاکتیک بده، مسابقه بده، با هوش مصنوعی قضاوت شو!</p>
-        </div>
-
-        <div class="user-card" id="userCard">
-            <span>👤 خوش آمدی</span>
-            <span class="user-name" id="userName">کاربر مهمان</span>
-            <span class="status-badge">✅ آنلاین</span>
-        </div>
-
-        <div class="menu-grid">
-            <div class="menu-card" onclick="sendCommand('🎯 تاکتیک')">
-                <div class="card-icon">📝</div>
-                <div class="card-title">ارسال تاکتیک</div>
-                <div class="card-desc">سیستم بازی و ترکیب</div>
-            </div>
-            <div class="menu-card" onclick="sendCommand('🤝 درخواست بازی')">
-                <div class="card-icon">🎮</div>
-                <div class="card-title">درخواست بازی</div>
-                <div class="card-desc">مسابقه دوستانه</div>
-            </div>
-            <div class="menu-card" onclick="sendCommand('📋 ترکیب من')">
-                <div class="card-icon">👕</div>
-                <div class="card-title">ترکیب من</div>
-                <div class="card-desc">بازیکنان تیمت</div>
-            </div>
-            <div class="menu-card" onclick="sendCommand('🛒 فروشگاه')">
-                <div class="card-icon">🛍️</div>
-                <div class="card-title">فروشگاه</div>
-                <div class="card-desc">محصولات ویژه</div>
-            </div>
-            <div class="menu-card" onclick="sendCommand('📊 لیگ و نتایج')">
-                <div class="card-icon">🏆</div>
-                <div class="card-title">جدول لیگ</div>
-                <div class="card-desc">رده‌بندی</div>
-            </div>
-            <div class="menu-card" onclick="sendCommand('💬 نظرات')">
-                <div class="card-icon">💬</div>
-                <div class="card-title">نظرات</div>
-                <div class="card-desc">پیشنهادات</div>
-            </div>
-            <div class="menu-card" onclick="sendCommand('🎙️ کنفرانس خبری')">
-                <div class="card-icon">🎙️</div>
-                <div class="card-title">کنفرانس خبری</div>
-                <div class="card-desc">تصویر و متن</div>
-            </div>
-            <div class="menu-card" onclick="sendCommand('/admin')">
-                <div class="card-icon">⚙️</div>
-                <div class="card-title">پنل مدیریت</div>
-                <div class="card-desc">تنظیمات</div>
-            </div>
-        </div>
-
-        <div class="info-card">
-            <h3>🏆 آخرین نتایج</h3>
-            <div id="results-list" class="loading">در حال بارگیری...</div>
-        </div>
-
-        <div class="info-card">
-            <h3>⭐ پیشنهاد ویژه</h3>
-            <div style="text-align: center; padding: 10px;">
-                <p>🎯 تاکتیک بفرست و با هوش مصنوعی داوری شو!</p>
-                <p style="font-size: 12px; color: #aaa;">ارسال تاکتیک = شانس برد بیشتر</p>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>⚽ با هوش مصنوعی DeepSeek | داور هوشمند فوتبال</p>
-        </div>
-    </div>
-
-    <script>
-        // اتصال به بله
-        let WebApp = window.Telegram?.WebApp || window.Bale?.WebApp;
-        
-        if (WebApp) {
-            WebApp.ready();
-            WebApp.expand();
-            
-            const user = WebApp.initDataUnsafe?.user;
-            if (user) {
-                const userName = user.first_name || "کاربر";
-                document.getElementById('userName').innerHTML = `${userName} ⚽`;
-                document.getElementById('userCard').innerHTML = `
-                    <span>👤 خوش آمدی</span>
-                    <span class="user-name">${userName}</span>
-                    <span class="status-badge">✅ آنلاین</span>
-                `;
-            }
-        }
-
-        // تابع ارسال فرمان به ربات
-        function sendCommand(command) {
-            if (WebApp) {
-                WebApp.sendData(JSON.stringify({ type: 'command', data: command }));
-                WebApp.close();
-            } else {
-                alert('لطفاً این صفحه را از داخل ربات بله باز کنید!');
-            }
-        }
-
-        // دریافت نتایج از سرور ربات (اختیاری - برای آینده)
-        async function loadResults() {
-            try {
-                const resultsDiv = document.getElementById('results-list');
-                
-                // این بخش بعداً به API واقعی ربات متصل میشه
-                // فعلاً داده‌های نمونه نمایش داده میشه
-                const sampleResults = [
-                    { team1: "برزیل", team2: "آلمان", score: "3 - 1", date: "۱۴۰۳/۰۳/۱۵" },
-                    { team1: "فرانسه", team2: "انگلستان", score: "2 - 2", date: "۱۴۰۳/۰۳/۱۴" },
-                    { team1: "آرژانتین", team2: "پرتغال", score: "1 - 0", date: "۱۴۰۳/۰۳/۱۳" }
-                ];
-                
-                resultsDiv.innerHTML = sampleResults.map(r => `
-                    <div class="result-item">
-                        <div class="result-teams">⚽ ${r.team1} 🆚 ${r.team2}</div>
-                        <div class="result-score">${r.score}</div>
-                        <div style="font-size: 10px; color: #888;">📅 ${r.date}</div>
-                    </div>
-                `).join('');
-            } catch(e) {
-                document.getElementById('results-list').innerHTML = '<div class="loading">📭 هنوز مسابقه‌ای برگزار نشده</div>';
-            }
-        }
-        
-        // بارگیری اولیه
-        loadResults();
-    </script>
-</body>
-</html>
+@flask_app.route('/api/buy', methods=['POST'])
+def buy_api():
+    data = request.json
+    user_id = data.get('user_id')
+    item_id = data.get('item_id')
+    
+    conn = sqlite3.connect('bot.db')
+    team = conn.execute("SELECT id FROM teams WHERE owner_id = ?", (str(user_id),)).fetchone()
+    if not team:
+        return jsonify({'success': False, 'error': 'تیمی ندارید'})
+    
+    conn.execute("INSERT INTO purchases (team_id, item_id, status, created_at) VALUES (?, ?, 'pending', ?)",
+                 (team[0], item_id, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
